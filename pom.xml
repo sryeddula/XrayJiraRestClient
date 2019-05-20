@@ -7,7 +7,6 @@
     <groupId>es.cuatrogatos.jira.plugins</groupId>
     <artifactId>XrayRestClient</artifactId>
     <version>1.0-SNAPSHOT</version>
-
     <!-- https://mvnrepository.com/artifact/org.openengsb.wrapped/com.atlassian.jira.rest.client -->
     <dependencies>
     <dependency>
@@ -21,8 +20,31 @@
             <version>4.12</version>
             <scope>test</scope>
         </dependency>
-
-
     </dependencies>
-
+    <build>
+        <plugins>
+            <plugin>
+                <artifactId>maven-compiler-plugin</artifactId>
+                <configuration>
+                    <source>11</source>
+                    <target>11</target>
+                    <encoding>UTF-8</encoding>
+                </configuration>
+                <version>3.8.0</version>
+            </plugin>
+            <plugin>
+                <groupId>org.apache.maven.plugins</groupId>
+                <artifactId>maven-jar-plugin</artifactId>
+                <version>2.4</version>
+                <executions>
+                    <execution>
+                        <goals>
+                            <goal>jar</goal>
+                            <goal>test-jar</goal>
+                        </goals>
+                    </execution>
+                </executions>
+            </plugin>
+        </plugins>
+    </build>
 </project>
