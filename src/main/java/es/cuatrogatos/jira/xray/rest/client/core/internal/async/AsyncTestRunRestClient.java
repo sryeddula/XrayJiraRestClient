@@ -14,10 +14,10 @@ import com.atlassian.jira.rest.client.internal.async.AbstractAsynchronousRestCli
 import com.atlassian.jira.rest.client.internal.async.AsynchronousSearchRestClient;
 import com.atlassian.jira.rest.client.internal.async.DisposableHttpClient;
 import com.atlassian.jira.rest.client.internal.json.JsonObjectParser;
+import com.atlassian.jira.rest.client.internal.json.gen.JsonGenerator;
 import com.atlassian.util.concurrent.Promise;
 
 import com.google.common.base.Function;
-import com.sun.istack.logging.Logger;
 import es.cuatrogatos.jira.xray.rest.client.api.TestRunRestClient;
 import es.cuatrogatos.jira.xray.rest.client.api.domain.*;
 import es.cuatrogatos.jira.xray.rest.client.core.internal.PluginConstants;
@@ -25,7 +25,6 @@ import es.cuatrogatos.jira.xray.rest.client.core.internal.json.StatusJsonParser;
 import es.cuatrogatos.jira.xray.rest.client.core.internal.json.TestRunJsonParser;
 import es.cuatrogatos.jira.xray.rest.client.core.internal.json.gen.TestRunJsonGenerator;
 import es.cuatrogatos.jira.xray.rest.client.core.internal.json.gen.TestRunUpdateJsonGenerator;
-import org.apache.http.entity.mime.content.FileBody;
 import org.codehaus.jettison.json.JSONException;
 import org.codehaus.jettison.json.JSONObject;
 
@@ -128,10 +127,24 @@ public class AsyncTestRunRestClient extends AbstractAsynchronousRestClient imple
         return this.getAndParse(uriBuilder.build(testRunId),statusParser);
     }
 
-    public Promise<TestRun.Status> updateStatus(Long testRunId, TestRun.Status statusInput) {
+    public Promise<Void> updateStatus(Long testRunId, TestRun.Status statusInput) {
         UriBuilder uriBuilder=UriBuilder.fromUri(baseUri);
         uriBuilder.path("testrun").path("{id}").path("/status/").queryParam("status",statusInput.name());
-       throw new IllegalArgumentException("NOT IMPLEMENTED YET");
+        var uri = uriBuilder.build(new Object[]{testRunId});
+        return this.putAndParse(uri, "", s -> new JSONObject(), jsonObject -> null);
+    }
+
+    public Promise<Void> attachEvidence(Long testRunId, String base64String, String contentType, String filename){
+        UriBuilder uriBuilder=UriBuilder.fromUri(baseUri);
+        uriBuilder.path("testrun").path("{id}").path("attachment");
+        var uri = uriBuilder.build(new Object[]{testRunId});
+        return this.post(uri, "", s -> {
+            var obj = new JSONObject();
+            obj.put("data",base64String);
+            obj.put("filename",filename);
+            obj.put("contentType",contentType);
+            return obj;
+        });
     }
 
     /**
