@@ -87,7 +87,7 @@ public class AsyncTestRunRestClient extends AbstractAsynchronousRestClient imple
             e.printStackTrace();
         }
         return this.putAndParse(uriBuilder.build(testRunInput.getId()), testRunInput,testRunUpdateJsonGenerator, new JsonObjectParser<Void>() {
-            public Void parse(JSONObject jsonObject) throws JSONException {
+            public Void parse(JSONObject jsonObject) {
                 System.out.println("CALLING PARSE ON UPDATE");
                 return null;
             }
@@ -102,16 +102,14 @@ public class AsyncTestRunRestClient extends AbstractAsynchronousRestClient imple
     //TODO: MOVE THIS METHOD TO A BOUNDARY
     public Promise<Iterable<TestRun>> getTestRuns(final String testKey) {
         Promise<SearchResult> searchResultPromise= searchRestClient.searchJql("issue in testTestExecutions(\""+testKey+"\") ");
-        return searchResultPromise.map(new Function<SearchResult,Iterable<TestRun>>(){
-            public Iterable<TestRun> apply(@Nullable SearchResult searchResult) {
-                ArrayList<TestRun> testRunsList=new ArrayList<TestRun>();
-                for(Issue issue: searchResult.getIssues() ){
-                    TestRun testRun=getTestRun(issue.getKey(),testKey).claim();
-                    testRun.setTestExecKey(issue.getKey());
-                    testRunsList.add(testRun);
-                }
-                return testRunsList;
+        return searchResultPromise.map(searchResult -> {
+            ArrayList<TestRun> testRunsList=new ArrayList();
+            for(Issue issue: searchResult.getIssues() ){
+                TestRun testRun=getTestRun(issue.getKey(),testKey).claim();
+                testRun.setTestExecKey(issue.getKey());
+                testRunsList.add(testRun);
             }
+            return testRunsList;
         });
     }
 
@@ -145,6 +143,17 @@ public class AsyncTestRunRestClient extends AbstractAsynchronousRestClient imple
             obj.put("contentType",contentType);
             return obj;
         });
+    }
+    public Promise<Void> addComment(Long testRunId, Comment comment){
+        UriBuilder uriBuilder=UriBuilder.fromUri(baseUri);
+        uriBuilder.path("testrun").path("{id}").path("comment");
+        var uri = uriBuilder.build(new Object[]{testRunId});
+        return this.putAndParse(uri, comment, c -> {
+            var obj = new JSONObject();
+            obj.put("raw",comment.getRaw());
+            obj.put("rendered",comment.getRendered());
+            return obj;
+        },jsonObject -> null);
     }
 
     /**

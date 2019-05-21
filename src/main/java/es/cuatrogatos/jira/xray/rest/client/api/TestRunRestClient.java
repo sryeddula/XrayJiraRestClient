@@ -29,6 +29,7 @@ public interface TestRunRestClient {
     Promise<Void> removeEvidence(Long testRunId,Long evId);
 
     Promise<Comment> getComment(Long testRunId);
+    Promise<Void> addComment(Long testRunId, Comment comment);
     Promise<Comment> updateComment(Long testRunId,String comment);
 
     Promise<Example> getExample(Long testRunId);
