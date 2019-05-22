@@ -7,6 +7,7 @@ import javax.annotation.Nullable;
 import javax.ws.rs.core.UriBuilder;
 
 import com.atlassian.httpclient.api.HttpClient;
+import com.atlassian.httpclient.api.ResponsePromise;
 import com.atlassian.jira.rest.client.api.SearchRestClient;
 import com.atlassian.jira.rest.client.api.domain.Issue;
 import com.atlassian.jira.rest.client.api.domain.SearchResult;
@@ -33,6 +34,7 @@ import org.codehaus.jettison.json.JSONObject;
  */
 public class AsyncTestRunRestClient extends AbstractAsynchronousRestClient implements TestRunRestClient {
     private URI baseUri;
+    private final HttpClient client;
     private final TestRunJsonParser testRunParser=new TestRunJsonParser();
     private final TestRunUpdateJsonGenerator testRunUpdateJsonGenerator=new TestRunUpdateJsonGenerator();
     private final StatusJsonParser  statusParser=new StatusJsonParser();
@@ -40,10 +42,12 @@ public class AsyncTestRunRestClient extends AbstractAsynchronousRestClient imple
 
     protected AsyncTestRunRestClient(HttpClient client) {
         super(client);
+        this.client = client;
     }
 
     public AsyncTestRunRestClient(URI serverUri, DisposableHttpClient httpClient){
         super(httpClient);
+        this.client = httpClient;
         searchRestClient=new AsynchronousSearchRestClient(UriBuilder.fromUri(serverUri).path("rest/api/latest/").build(new Object[0]),httpClient);
         baseUri = UriBuilder.fromUri(serverUri).path("/rest/raven/{restVersion}/api/").build(PluginConstants.XRAY_REST_VERSION);
     }
@@ -156,6 +160,13 @@ public class AsyncTestRunRestClient extends AbstractAsynchronousRestClient imple
         },jsonObject -> null);
     }
 
+    public Promise<Void> addComment(Long testRunId, String comment){
+        UriBuilder uriBuilder=UriBuilder.fromUri(baseUri);
+        uriBuilder.path("testrun").path("{id}").path("comment");
+        var uri = uriBuilder.build(new Object[]{testRunId});
+        ResponsePromise responsePromise = this.client.newRequest(uri).setEntity(comment).put();
+        return this.call(responsePromise);
+    }
     /**
      * Rest-API call to the /testrun? with params because the default api rest-call doesn't work on json format.
      * @param testExecKey Key from the test execution
