@@ -1,13 +1,20 @@
 package es.cuatrogatos.jira.xray.rest.client.core.internal.async;
 
+import java.io.ByteArrayInputStream;
+import java.io.InputStream;
 import java.net.URI;
+import java.nio.charset.Charset;
 import java.util.ArrayList;
+import java.util.Collections;
+import java.util.Map;
 
 import javax.annotation.Nullable;
 import javax.ws.rs.core.UriBuilder;
 
+import com.atlassian.httpclient.api.EntityBuilder;
 import com.atlassian.httpclient.api.HttpClient;
 import com.atlassian.httpclient.api.ResponsePromise;
+import com.atlassian.jira.rest.client.api.RestClientException;
 import com.atlassian.jira.rest.client.api.SearchRestClient;
 import com.atlassian.jira.rest.client.api.domain.Issue;
 import com.atlassian.jira.rest.client.api.domain.SearchResult;
@@ -164,7 +171,15 @@ public class AsyncTestRunRestClient extends AbstractAsynchronousRestClient imple
         UriBuilder uriBuilder=UriBuilder.fromUri(baseUri);
         uriBuilder.path("testrun").path("{id}").path("comment");
         var uri = uriBuilder.build(new Object[]{testRunId});
-        ResponsePromise responsePromise = this.client.newRequest(uri).setEntity(comment).put();
+        ResponsePromise responsePromise = this.client.newRequest(uri).setEntity(() -> new EntityBuilder.Entity() {
+            public Map<String, String> getHeaders() {
+                return Collections.singletonMap("Content-Type", "application/json");
+            }
+
+            public InputStream getInputStream() {
+                return new ByteArrayInputStream(comment.getBytes(Charset.forName("UTF-8")));
+            }
+        }).put();
         return this.call(responsePromise);
     }
     /**
