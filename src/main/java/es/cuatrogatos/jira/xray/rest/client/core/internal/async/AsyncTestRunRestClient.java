@@ -171,7 +171,7 @@ public class AsyncTestRunRestClient extends AbstractAsynchronousRestClient imple
         UriBuilder uriBuilder=UriBuilder.fromUri(baseUri);
         uriBuilder.path("testrun").path("{id}").path("comment");
         var uri = uriBuilder.build(new Object[]{testRunId});
-        ResponsePromise responsePromise = this.client.newRequest(uri).setEntity(() -> new EntityBuilder.Entity() {
+        ResponsePromise responsePromise = this.client().newRequest(uri).setEntity(() -> new EntityBuilder.Entity() {
             public Map<String, String> getHeaders() {
                 return Collections.singletonMap("Content-Type", "application/json");
             }
